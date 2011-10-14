@@ -2,6 +2,8 @@
 ========
 [jaunte.el] をロクに説明も読まずにそこはかとなく移植。
 
+  [jaunte.el]: http://kawaguchi.posterous.com/emacshit-a-hint
+
 インストール
 ============
 
