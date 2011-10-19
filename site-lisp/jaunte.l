@@ -269,6 +269,7 @@
   buffer
   contents
   point-offset
+  fold-width
   preceding-lines
   find-target-function
   syntax-table)
@@ -278,7 +279,7 @@
        (= (length info) 6)
        (with-struct (screen-info buffer contents preceding-lines
                                  point-offset find-target-function
-                                 syntax-table)
+                                 syntax-table fold-width)
            info
          (and (bufferp buffer)
               (stringp contents)
@@ -288,6 +289,8 @@
               (and (integerp point-offset)
                    (<= 0 point-offset)
                    (< point-offset (length contents)))
+              (or (member fold-width '(t nil))
+                  (integerp fold-width))
               (or (functionp find-target-function)
                   (and (symbolp find-target-function)
                        (fboundp find-target-function)))
@@ -333,17 +336,19 @@
          :buffer (selected-buffer)
          :contents (buffer-substring start end)
          :preceding-lines plines
+         :fold-width (buffer-fold-width)
          :point-offset (- opoint start)
          :find-target-function -jaunte-find-target-function-
          :syntax-table (syntax-table))))))
 
 (defun replicate-in-mirror-buffer (info)
   (with-struct (screen-info buffer contents preceding-lines point-offset
-                            find-target-function syntax-table)
+                            fold-width find-target-function syntax-table)
       info
     (let ((mirror (create-new-buffer " Jaunte Mirror")))
       (setup-temp-buffer mirror)
       (set-buffer mirror)
+      (set-buffer-fold-width fold-width)
       (goto-char (point-min))
       (cond ((integerp preceding-lines)
              (insert #\LFD preceding-lines)
