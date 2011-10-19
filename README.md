@@ -4,6 +4,13 @@
 
   [jaunte.el]: http://kawaguchi.posterous.com/emacshit-a-hint
 
+依存するライブラリ
+==================
+- [ansify](http://github.com/bowbow99/xyzzy.ansify/)
+  - NetInstaller 用 [packages.l](http://bowbow99.sakura.ne.jp/xyzzy/packages.l)
+- [ansi-loop](http://miyamuko.s56.xrea.com/xyzzy/ansi-loop/)
+  - NetInstaller 用 [package.l](http://miyamuko.s56.xrea.com/xyzzy/package.l)
+
 インストール
 ============
 
