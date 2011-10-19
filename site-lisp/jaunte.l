@@ -5,6 +5,7 @@
 ;;; Author:     bowbow99  <bowbow99@gmail.com>
 ;;; Version:    0.00.01
 ;;; Category:   Utilities
+;;; Depends:    ansify ansi-loop
 ;;; License:    MIT (see COPYING.mit)
 ;;; Commentary: (see README.md)
 ;;; ChangeLog:  (see ChangeLog)
