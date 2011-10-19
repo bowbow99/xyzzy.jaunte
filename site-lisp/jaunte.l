@@ -193,18 +193,13 @@
                 (goto-virtual-line bottom-line)
                 (point-virtual-eol))))))
 
-;; borrowed from http://gist.github.com/608651 @miyamuko
-;; TODO: use loop
-;; TODO: I want current window at car
+;; modified from http://gist.github.com/608651 @miyamuko
 (defun window-list ()
-  (let ((r nil)
-        (w (selected-window)))
-    (lisp::*loop
-     (push w r)
-     (setf w (next-window w))
-     (when (eql w (selected-window))
-       (return)))
-    r))
+  (let* ((owin (selected-window))
+         (list (list owin)))
+    (do ((w (next-window owin) (next-window w)))
+        ((eql w owin) (nreverse list))
+      (push w list))))
 
 (defun effective-window-flag (flag)
   (labels ((flagged-p (x) (plusp (logand flag x))))
