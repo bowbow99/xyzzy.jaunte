@@ -9,18 +9,6 @@
 ;;; Commentary: (see README.md)
 ;;; ChangeLog:  (see ChangeLog)
 
-;;; Usage:
-;;
-;; 0. `*load-path*` のどっかにこのファイルを置く
-;; 1. .xyzzy などに
-#|
-(require "jaunte")
-(use-package :jaunte)
-(global-set-key '(#\C-c #\C-j) 'jaunte)
-|#
-;; 2. おもむろに M-x jaunte (or C-c C-j)
-;;
-
 ;;; TODOs:
 ;; - window-flag 周りが中途半端
 ;;   - line-number だけ再現してる
