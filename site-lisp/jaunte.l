@@ -3,7 +3,7 @@
 ;;; jaunte.l --- ‰æ–Ê“à‚Éƒqƒ“ƒg‚ðŽU‚ç‚©‚µ‚Ä‚»‚±‚ÖƒWƒƒƒ“ƒv
 ;;;
 ;;; Author:     bowbow99  <bowbow99@gmail.com>
-;;; Version:    0.00.xx
+;;; Version:    0.00.00
 ;;; Category:   Utilities
 ;;; License:    MIT (see COPYING.mit)
 ;;; Commentary: (see README.md)
