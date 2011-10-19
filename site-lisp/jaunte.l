@@ -22,7 +22,6 @@
 ;;
 
 ;;; TODOs:
-;; - ƒqƒ“ƒg‚Ì•‚¶‚á‚È‚­‚Ä•¶Žš”‚Åã‘‚«‚µ‚Ä‚é‚Ì‚ÅA‘SŠp•¶Žš‚ª‚ ‚é‚ÆƒYƒŒ‚é
 ;; - window-flag Žü‚è‚ª’†“r”¼’[
 ;;   - line-number ‚¾‚¯ÄŒ»‚µ‚Ä‚é
 ;;   - eof, tab, newline,,, ‰½‚à‚µ‚Ä‚È‚¢i©
@@ -173,6 +172,10 @@
              table)
     ntable))
 
+(defun string-columns (string)
+  #+jaunte/safety (check-type string string)
+  (loop for c across string sum (char-columns c)))
+
 (defun point-virtual-bol ()
   (save-excursion (goto-virtual-bol) (point)))
 
@@ -228,6 +231,13 @@
     `(format t "~&~:{* ~S => ~S~%~}"
            (list ,@(loop for form in (cons datum args)
                      collect `(list ',form ,form))))))
+
+(defmacro @message (datum &rest args)
+  (if (stringp datum)
+    `(message ,datum ,@args)
+    `(message "~:{~S: ~S, ~}"
+              (list ,@(loop for form in (cons datum args)
+                        collect `(list ',form ,form))))))
 
 (defmacro @msgbox (datum &rest args)
   (if (stringp datum)
@@ -383,8 +393,7 @@
          (and (windowp window)
               (bufferp buffer)
               (bufferp mirror)
-              (and (integerp point)
-                   (>= point 0))
+              (markerp point)
               (stringp otext)
               (stringp hint)))))
 
@@ -395,7 +404,7 @@
     (with-current-window window
       #+jaunte/safety (assert (eql (selected-buffer) mirror))
       (delete-text-attributes target)
-      (apply #'set-text-attribute point (+ point (length hint))
+      (apply #'set-text-attribute point (+ (marker-point point) (length hint))
              target attribute))))
 
 (defun target-activate (target)
@@ -422,7 +431,9 @@
   (let* ((hint-string (gen-hint-string))
          (text (buffer-substring pos (+ pos (length hint-string)))))
     (make-target :window (selected-window) :buffer -source-buffer-
-                 :mirror (selected-buffer) :point pos :offset offset
+                 :mirror (selected-buffer)
+                 :point (set-marker (make-marker) pos)
+                 :offset offset
                  :hint hint-string :otext text)))
 
 (defun target-setup-hint (target)
@@ -431,17 +442,20 @@
     #+jaunte/safety (assert (eql (selected-buffer) mirror))
     (save-excursion
       (goto-char point)
-      (insert hint)
+      (let ((opoint (point)))
+        (insert hint)
+        (set-marker point opoint))
       (let ((hint-end (point))
-            (cline (current-virtual-line-number)))
-        (goto-char (+ hint-end (length hint)))
-        (delete-region hint-end
-                       (cond ((/= (current-virtual-line-number) cline)
-                              (goto-char hint-end)
-                              (point-virtual-eol))
-                             (t  (point)))))
-      (target-activate target)
-      )))
+            (goal (+ (current-virtual-column) (length hint))))
+        (while (and (< (current-virtual-column) goal)
+                    (not (virtual-eolp)))
+          (forward-char 1)
+          (when (and (= (char-columns (preceding-char)) 2)
+                     (> (current-virtual-column) goal))
+            (save-excursion (insert #\SPC))
+            (return)))
+        (delete-region hint-end (point)))
+      (target-activate target))))
 
 (defun jaunte-find-next-word ()
   (let ((opoint (point)))
