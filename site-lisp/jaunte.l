@@ -48,6 +48,7 @@
 (in-package :jaunte)
 
 (export '(jaunte
+          *jaunte-jump-if-unique*
           *jaunte-active-hint-attribute*
           *jaunte-inactive-hint-attribute*
           *jaunte-hint-target-keys*
