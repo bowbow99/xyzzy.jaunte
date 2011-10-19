@@ -552,8 +552,8 @@
       (when (stringp goal)
         (setf goal (find-goal-target goal)))
       (with-struct (target window offset) goal
-        (with-current-window window
-          (goto-char (+ (screen-start/end) offset))))
+        (set-window window)
+        (goto-char (+ (screen-start/end) offset)))
       )))
 
 #+jaunte/quickrun
