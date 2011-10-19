@@ -22,7 +22,7 @@ NetInstaller から
 
 まにゅありー
 ------------
-- [jaunte-0.01.00.zip] をダウンロード
+- [jaunte-0.01.00.zip](http://bowbow99.sakura.ne.jp/xyzzy/jaunte-0.00.01.zip) をダウンロード
 - xyzzy フォルダに丸ごと解凍
 - 設定へ進む
 
