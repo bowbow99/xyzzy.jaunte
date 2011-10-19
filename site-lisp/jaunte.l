@@ -244,6 +244,9 @@
              (list ,@(loop for form in (cons datum args)
                        collect `(list ',form ,form))))))
 
+(defmacro @obsoleted (thing)
+  `(error "OBSOLETED: ~S" thing))
+
 (defun @pause (n)
   (refresh-screen) (sit-for n))
 
@@ -420,31 +423,33 @@
                   (princ-to-string (char *jaunte-hint-target-keys* n)))
         (incf *hint-index*)))))
 
-(defun create-target (pos offset)
-  #+jaunte/safety (check-type pos (integer 0))
+(defun create-new-target (pos offset)
+  #+jaunte/safety (check-type pos (integer 0 *))
   #+jaunte/safety (assert (and (local-variable-p '-mirror-buffer-of-)
                                (windowp -mirror-buffer-of-)))
   (let* ((hint-string (gen-hint-string))
-         (hint-len (length hint-string)))
-    (with-struct (target)
-        (make-target :window (selected-window) :buffer -source-buffer-
-                     :mirror (selected-buffer) :point pos :offset offset
-                     :hint hint-string
-                     :otext (buffer-substring pos (+ pos hint-len)))
-      (save-excursion
-        (goto-char pos)
-        (insert hint-string)
-        (target-activate target)
-        (let ((hint-end (point))
-              (cline (current-virtual-line-number)))
-          (goto-char (+ hint-end hint-len))
-          (delete-region hint-end
-                         (cond ((/= (current-virtual-line-number) cline)
-                                (forward-line -1)
-                                (point-virtual-eol))
-                               ((virtual-eolp) (1- (point)))
-                               (t  (point)))))
-        target))))
+         (text (buffer-substring pos (+ pos (length hint-string)))))
+    (make-target :window (selected-window) :buffer -source-buffer-
+                 :mirror (selected-buffer) :point pos :offset offset
+                 :hint hint-string :otext text)))
+
+(defun target-setup-hint (target)
+  (with-struct (target window mirror point hint) target
+    #+jaunte/safety (assert (eql (selected-window) window))
+    #+jaunte/safety (assert (eql (selected-buffer) mirror))
+    (save-excursion
+      (goto-char point)
+      (insert hint)
+      (let ((hint-end (point))
+            (cline (current-virtual-line-number)))
+        (goto-char (+ hint-end (length hint)))
+        (delete-region hint-end
+                       (cond ((/= (current-virtual-line-number) cline)
+                              (goto-char hint-end)
+                              (point-virtual-eol))
+                             (t  (point)))))
+      (target-activate target)
+      )))
 
 (defun jaunte-find-next-word ()
   (let ((opoint (point)))
@@ -456,24 +461,27 @@
                         (> (point) opoint))))
       (point))))
 
-(defun find-targets-in-window (win)
-  (with-current-window win
-    #+jaunte/safety (assert (eql -mirror-buffer-of- win))
-    #+jaunte/safety (check-type -jaunte-find-target-function- callable)
-    (let ((last 0))
-      (save-excursion
-        (multiple-value-bind (start limit) (screen-start/end)
-          (goto-char start)
-          (loop for pos = (funcall -jaunte-find-target-function-)
-            while (and (integerp pos) (< pos limit)) do
-            (push (create-target pos (- pos start)) *targets*)
-            ;(setq last pos)
-            (goto-char (+ pos *jaunte-target-min-distance*))))))))
+(defun find-targets-in-window ()
+  #+jaunte/safety (assert (eql -mirror-buffer-of- (selected-window)))
+  #+jaunte/safety (check-type -jaunte-find-target-function- callable)
+  (let ((targets nil))
+    (save-excursion
+      (multiple-value-bind (start limit) (screen-start/end)
+        (goto-char start)
+        (loop for pos = (funcall -jaunte-find-target-function-)
+          while (and (integerp pos) (< pos limit)) do
+          (push (create-new-target pos (- pos start)) targets)
+          (goto-char (+ pos *jaunte-target-min-distance*)))
+        (nreverse targets)))))
 
 (defun setup-jaunte-targets ()
   (loop for win in (window-list) do
     (mirror-screen win)
-    (find-targets-in-window win)))
+    (with-current-window win
+      (let ((targets (find-targets-in-window)))
+        (setf *targets* (append targets *targets*))
+        (loop for target in targets
+          do (target-setup-hint target))))))
 
 ;;;;; update
 
